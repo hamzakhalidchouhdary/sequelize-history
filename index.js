@@ -121,12 +121,12 @@ class SequelizeHistory {
 				field: 'fk_model_id'
 			},
 			diff: {
-				type: sequelize.JSON,
+				type: sequelize.TEXT,
 				allowNull: true,
 				field: 't_diff'
 			},
 			archivedAt: {
-				type: sequelize.INT,
+				type: sequelize.INTEGER,
 				allowNull: false,
 				field: 'i_archived_at'
 			}
