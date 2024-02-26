@@ -210,7 +210,7 @@ class SequelizeHistory {
 
 		const historyRecord = this.modelHistory.create({
 			modelId: doc.dataValues.id,
-			diff: historyDataValues,
+			diff: JSON.stringify(historyDataValues),
 			archivedAt: moment().unix()
 		}, {
 			transaction: options.transaction
@@ -258,10 +258,10 @@ class SequelizeHistory {
 						}
 
 						dataSet.modelId = hit.id;
-						delete dataSet.id;
+
 						return {
 							modelId: dataSet.modelId,
-							diff: dateSetHistory,
+							diff: JSON.stringify(dateSetHistory),
 							archivedAt: moment().unix()
 						};
 					});
