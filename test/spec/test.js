@@ -84,7 +84,7 @@ test('onUpdate: should store the previous version to the historyDB', t => {
 		.then(() => UserRevision.findAll())
 		.then(users => {
 			t.equal(users.length, 1, 'only one entry in DB');
-			t.equal(users[0].name, 'foo', 'previous entry saved');
+			t.equal(users[0].t_diff.name, 'foo', 'previous entry saved');
 			return User.findOne();
 		})
 		.then(user => user.destroy())
@@ -117,7 +117,7 @@ test('onDelete: should store the previous version to the historyDB', t => {
 		})
 		.then(users => {
 			t.equal(users.length, 1, 'only one entry in DB');
-			t.equal(users[0].name, 'foo', 'previous entry saved');
+			t.equal(users[0].t_diff.name, 'foo', 'previous entry saved');
 		})
 		.catch(err => console.error(err));
 });

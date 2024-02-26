@@ -58,13 +58,13 @@ class SequelizeHistory {
 			// Add relationship with the original model to ensure
 			// table constraints are not applied if added manually
 			this.model.hasMany(this.modelHistory, {
-				foreignKey: 'modelId',
+				foreignKey: 'fk_model_id',
 				contraints: false,
 				as: 'revisions'
 			});
 
 			this.modelHistory.belongsTo(this.model, {
-				foreignKey: 'modelId',
+				foreignKey: 'fk_model_id',
 				contraints: false,
 				as: 'model'
 			});
@@ -99,39 +99,6 @@ class SequelizeHistory {
 
 		const attributes = [];
 
-		Object.keys(cloned).forEach(field => {
-			const f = cloned[field];
-
-			// If attribute should be excluded, skip...
-			if (this.options.excludedAttributes.indexOf(f.fieldName) > -1) {
-				return;
-			}
-
-			// Skip the id attribute...
-			if (f.fieldName === 'id') {
-				return;
-			}
-
-			// Remove any attribute properties that should be excluded...
-			this.options.excludedAttributeProperties.forEach(prop => {
-				if (typeof f[prop] !== 'undefined') {
-					delete f[prop];
-				}
-			});
-
-			// Remove the default behavior of auto-updating the timestamps...
-			if (f.fieldName === 'createdAt' ||
-				f.fieldName === 'updatedAt') {
-				delete f.defaultValue;
-			}
-
-			// Allow all fields to be NULL...
-			f.allowNull = true;
-
-			// And store the modified attribute
-			attributes[field] = f;
-		});
-
 		return merge({}, this.fields, attributes);
 	}
 
@@ -148,11 +115,15 @@ class SequelizeHistory {
 				primaryKey: true,
 				unique: true
 			},
-			modelId: {
+			fk_model_id: {
 				type: sequelize.INTEGER,
 				allowNull: true
 			},
-			archivedAt: {
+			t_diff: {
+				type: sequelize.JSON,
+				allowNull: true
+			},
+			t_archived_at: {
 				type: sequelize.DATE,
 				defaultValue: sequelize.NOW,
 				allowNull: false
@@ -203,7 +174,8 @@ class SequelizeHistory {
 	insertHook(doc, options) {
 		const dataValues = doc._previousDataValues || doc.dataValues;
 
-		dataValues.modelId = dataValues.id;
+		let historyDataValues = cloneDeep(dataValues);
+		dataValues.fk_model_id = dataValues.id;
 
 		// Grab the static revision author property from the tracked class
 		// and null it out after its first use when called via an instance
@@ -215,7 +187,10 @@ class SequelizeHistory {
 
 		delete dataValues.id;
 
-		const historyRecord = this.modelHistory.create(dataValues, {
+		const historyRecord = this.modelHistory.create({
+			fk_model_id: dataValues.fk_model_id,
+			t_diff: historyDataValues
+		}, {
 			transaction: options.transaction
 		});
 
@@ -243,9 +218,12 @@ class SequelizeHistory {
 							dataSet[this.options.authorFieldName] = this.model._sequelizeHistoryProps._authorId;
 						}
 
-						dataSet.modelId = hit.id;
+						dataSet.fk_model_id = hit.id;
 						delete dataSet.id;
-						return dataSet;
+						return {
+							fk_model_id: dataSet.fk_model_id,
+							t_diff: dataSet
+						};
 					});
 
 					// ...and null it out after all bulk updates are complete
@@ -272,7 +250,7 @@ SequelizeHistory.DEFAULTS = {
 	authorFieldName: null,
 	// String to append to tracked model's name in creating
 	// name of model's history model
-	modelSuffix: 'History',
+	modelSuffix: '_history',
 	// Array of attributes to be ignored and excluded when
 	// recording a change to the target model
 	excludedAttributes: [],
