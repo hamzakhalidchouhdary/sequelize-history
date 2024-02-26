@@ -218,6 +218,23 @@ class SequelizeHistory {
 	}
 
 	/**
+	 * Get differenciated object for bulk
+	 * @param  {object} object - object to get difference from
+	 * @param  {array} fields - fields to get difference for
+	 * @return {object} - object representing the difference
+	 */
+
+	getDifferenciatedObjectForBulk(object, fields) {
+		let newObj = {};
+
+		fields.forEach(field => {
+			newObj[field] = object[field];
+		});
+
+		return newObj;
+	}
+
+	/**
 	 * Hook to trigger recording of multiple revision
 	 * @param  {object} options - options
 	 * @return {Promise} = resolves
@@ -231,7 +248,7 @@ class SequelizeHistory {
 				if (hits !== null) {
 					const docs = hits.map(hit => {
 						const dataSet = cloneDeep(hit.dataValues);;
-						const dateSetHistory = this.getDifference(hit._previousDataValues, hit.dataValues);
+						const dateSetHistory = this.getDifferenciatedObjectForBulk(dataSet, options.fields);
 						// Grab the static revision author property from the tracked class
 						if (typeof this.options.authorFieldName === 'string' &&
 							typeof this.model._sequelizeHistoryProps !== 'undefined') {
