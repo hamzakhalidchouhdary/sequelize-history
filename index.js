@@ -178,7 +178,7 @@ class SequelizeHistory {
 		const difference = {};
 		for (const key in current) {
 			if (previous[key] !== current[key]) {
-				difference[key] = current[key];
+				difference[key] = previous[key];
 			}
 		}
 		return difference;
