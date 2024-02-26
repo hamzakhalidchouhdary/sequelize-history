@@ -208,7 +208,7 @@ class SequelizeHistory {
 		delete dataValues.id;
 
 		const historyRecord = this.modelHistory.create({
-			fk_model_id: dataValues.fk_model_id,
+			fk_model_id: doc.dataValues.id,
 			t_diff: historyDataValues
 		}, {
 			transaction: options.transaction
