@@ -165,6 +165,26 @@ class SequelizeHistory {
 	}
 
 	/**
+	 * Gets the difference between two objects
+	 * @private
+	 * @param  {object} previous - previous object
+	 * @param  {object} current - current object
+	 * @return {object} - object representing the difference
+	 * @example
+	 * getDifference({a: 1, b: 2}, {a: 1, b: 3}) // {b: 3}
+	 * getDifference({a: 1, b: 2}, {a: 1, b: 2}) // {}
+	 */
+	getDifference(previous, current) {
+		const difference = {};
+		for (const key in current) {
+			if (previous[key] !== current[key]) {
+				difference[key] = current[key];
+			}
+		}
+		return difference;
+	}
+
+	/**
 	 * Hook to trigger recording of revision
 	 * @private
 	 * @param  {Sequelize.Model} doc - instance to track
@@ -172,7 +192,7 @@ class SequelizeHistory {
 	 * @return {Sequelize.Model} - Instance representing the revision
 	 */
 	insertHook(doc, options) {
-		const dataValues = doc._previousDataValues || doc.dataValues;
+		const dataValues = this.getDifference(doc._previousDataValues, doc.dataValues);
 
 		let historyDataValues = cloneDeep(dataValues);
 		dataValues.fk_model_id = dataValues.id;
@@ -210,7 +230,7 @@ class SequelizeHistory {
 			}).then(hits => {
 				if (hits !== null) {
 					const docs = hits.map(hit => {
-						const dataSet = cloneDeep(hit.dataValues);
+						const dataSet = this.getDifference(hit._previousDataValues, hit.dataValues);
 
 						// Grab the static revision author property from the tracked class
 						if (typeof this.options.authorFieldName === 'string' &&
