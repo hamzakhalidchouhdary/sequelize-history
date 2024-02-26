@@ -192,9 +192,9 @@ class SequelizeHistory {
 	 * @return {Sequelize.Model} - Instance representing the revision
 	 */
 	insertHook(doc, options) {
-		const dataValues = this.getDifference(doc._previousDataValues, doc.dataValues);
+		const dataValues = doc._previousDataValues || doc.dataValues;
 
-		let historyDataValues = cloneDeep(dataValues);
+		let historyDataValues = this.getDifference(doc._previousDataValues, doc.dataValues);
 		dataValues.fk_model_id = dataValues.id;
 
 		// Grab the static revision author property from the tracked class
@@ -230,8 +230,8 @@ class SequelizeHistory {
 			}).then(hits => {
 				if (hits !== null) {
 					const docs = hits.map(hit => {
-						const dataSet = this.getDifference(hit._previousDataValues, hit.dataValues);
-
+						const dataSet = cloneDeep(hit.dataValues);;
+						const dateSetHistory = this.getDifference(hit._previousDataValues, hit.dataValues);
 						// Grab the static revision author property from the tracked class
 						if (typeof this.options.authorFieldName === 'string' &&
 							typeof this.model._sequelizeHistoryProps !== 'undefined') {
@@ -242,7 +242,7 @@ class SequelizeHistory {
 						delete dataSet.id;
 						return {
 							fk_model_id: dataSet.fk_model_id,
-							t_diff: dataSet
+							t_diff: dateSetHistory
 						};
 					});
 
