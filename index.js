@@ -2,7 +2,7 @@
 
 const cloneDeep = require('lodash/cloneDeep');
 const merge = require('lodash/merge');
-
+const moment = require('moment-timezone');
 /**
  * @class
  * SequelizeHistory
@@ -115,18 +115,20 @@ class SequelizeHistory {
 				primaryKey: true,
 				unique: true
 			},
-			fk_model_id: {
+			modelId: {
 				type: sequelize.INTEGER,
-				allowNull: true
+				allowNull: true,
+				field: 'fk_model_id'
 			},
-			t_diff: {
+			diff: {
 				type: sequelize.JSON,
-				allowNull: true
+				allowNull: true,
+				field: 't_diff'
 			},
-			t_archived_at: {
-				type: sequelize.DATE,
-				defaultValue: sequelize.NOW,
-				allowNull: false
+			archivedAt: {
+				type: sequelize.INT,
+				allowNull: false,
+				field: 'i_archived_at'
 			}
 		};
 
@@ -195,7 +197,6 @@ class SequelizeHistory {
 		const dataValues = doc._previousDataValues || doc.dataValues;
 
 		let historyDataValues = this.getDifference(doc._previousDataValues, doc.dataValues);
-		dataValues.fk_model_id = dataValues.id;
 
 		// Grab the static revision author property from the tracked class
 		// and null it out after its first use when called via an instance
@@ -208,8 +209,9 @@ class SequelizeHistory {
 		delete dataValues.id;
 
 		const historyRecord = this.modelHistory.create({
-			fk_model_id: doc.dataValues.id,
-			t_diff: historyDataValues
+			modelId: doc.dataValues.id,
+			diff: historyDataValues,
+			archivedAt: moment().unix()
 		}, {
 			transaction: options.transaction
 		});
@@ -255,11 +257,12 @@ class SequelizeHistory {
 							dataSet[this.options.authorFieldName] = this.model._sequelizeHistoryProps._authorId;
 						}
 
-						dataSet.fk_model_id = hit.id;
+						dataSet.modelId = hit.id;
 						delete dataSet.id;
 						return {
-							fk_model_id: dataSet.fk_model_id,
-							t_diff: dateSetHistory
+							modelId: dataSet.modelId,
+							diff: dateSetHistory,
+							archivedAt: moment().unix()
 						};
 					});
 

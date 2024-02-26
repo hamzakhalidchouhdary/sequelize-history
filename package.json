@@ -12,7 +12,8 @@
     "test": "node test/spec/test.js | tap-spec"
   },
   "dependencies": {
-    "lodash": "^4.17.4"
+    "lodash": "^4.17.4",
+    "moment-timezone": "^0.5.45"
   },
   "devDependencies": {
     "istanbul": "^0.4.5",
