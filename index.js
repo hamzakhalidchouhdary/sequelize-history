@@ -179,7 +179,7 @@ class SequelizeHistory {
 	getDifference(previous, current) {
 		const difference = {};
 		for (const key in current) {
-			if (previous[key] !== current[key]) {
+			if (previous[key] !== current[key] && this.options.excludedAttributes.indexOf(key) === -1){
 				difference[key] = previous[key];
 			}
 		}
