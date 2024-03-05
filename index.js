@@ -125,10 +125,10 @@ class SequelizeHistory {
 				allowNull: true,
 				field: 't_diff'
 			},
-			archivedAt: {
+			createdAt: {
 				type: sequelize.INTEGER,
 				allowNull: false,
-				field: 'i_archived_at'
+				field: 'i_created_at'
 			}
 		};
 
@@ -211,7 +211,7 @@ class SequelizeHistory {
 		const historyRecord = this.modelHistory.create({
 			modelId: doc.dataValues.id,
 			diff: JSON.stringify(historyDataValues),
-			archivedAt: moment().unix()
+			createdAt: moment().unix()
 		}, {
 			transaction: options.transaction
 		});
@@ -264,7 +264,7 @@ class SequelizeHistory {
 						return {
 							modelId: dataSet.modelId,
 							diff: JSON.stringify(dateSetHistory),
-							archivedAt: moment().unix()
+							createdAt: moment().unix()
 						};
 					});
 
