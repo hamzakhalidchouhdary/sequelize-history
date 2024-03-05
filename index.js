@@ -230,7 +230,9 @@ class SequelizeHistory {
 		let newObj = {};
 
 		fields.forEach(field => {
-			newObj[field] = object[field];
+			if (this.options.excludedAttributes.indexOf(field) === -1) {
+				newObj[field] = object[field];
+			}
 		});
 
 		return newObj;
