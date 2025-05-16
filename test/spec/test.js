@@ -84,7 +84,7 @@ test('onUpdate: should store the previous version to the historyDB', t => {
 		.then(() => UserRevision.findAll())
 		.then(users => {
 			t.equal(users.length, 1, 'only one entry in DB');
-			t.equal(users[0].t_diff.name, 'foo', 'previous entry saved');
+			t.equal(JSON.parse(users[0].diff).name, 'foo', 'previous entry saved');
 			return User.findOne();
 		})
 		.then(user => user.destroy())
@@ -117,7 +117,7 @@ test('onDelete: should store the previous version to the historyDB', t => {
 		})
 		.then(users => {
 			t.equal(users.length, 1, 'only one entry in DB');
-			t.equal(users[0].t_diff.name, 'foo', 'previous entry saved');
+			t.equal(users[0].diff, '{}', 'previous entry saved');
 		})
 		.catch(err => console.error(err));
 });
@@ -369,7 +369,8 @@ test('authors: creates author field', t => {
 	revisionTracker(sequelize.define('Fruit', {
 		name: {type: Sequelize.TEXT}
 	}), sequelize, {
-		authorFieldName: 'authorId'
+		authorFieldName: 'authorId',
+		modelSuffix: 'History'
 	});
 
 	t.equal(typeof sequelize.models.FruitHistory.attributes.authorId,
@@ -394,7 +395,7 @@ test('authors: tracks revision author', t => {
 		name: {type: Sequelize.TEXT}
 	});
 
-	revisionTracker(Fruit, sequelize, {authorFieldName: 'authorId'});
+	revisionTracker(Fruit, sequelize, {authorFieldName: 'authorId', modelSuffix: 'History'});
 
 	return new Promise((resolve, reject) => {
 		sequelize.sync({force: true})
@@ -404,7 +405,7 @@ test('authors: tracks revision author', t => {
 				Fruit.setRevisingAuthor(50);
 				return fruit.update({name: 'new-name'});
 			})
-			.then(() => sequelize.models.FruitHistory.findOne({where: {name: 'test'}}))
+			.then(() => sequelize.models.FruitHistory.findOne({where: {modelId: fruit.id}}))
 			.then(fruitHistory => {
 				t.equal(typeof Fruit.setRevisingAuthor, 'function', 'writes method to model');
 				t.equal(fruitHistory.authorId, 50, 'tracks revision author');
@@ -434,7 +435,7 @@ test('authors: tracks builk revisions', t => {
 		name: {type: Sequelize.TEXT}
 	});
 
-	revisionTracker(Fruit, sequelize, {authorFieldName: 'authorId'});
+	revisionTracker(Fruit, sequelize, {authorFieldName: 'authorId', modelSuffix: 'History'});
 
 	return new Promise((resolve, reject) => {
 		sequelize.sync({force: true})
@@ -481,7 +482,7 @@ test('attributes: ignore excluded attributes', t => {
 		type: {type: Sequelize.TEXT}
 	});
 
-	revisionTracker(Fruit, sequelize, {excludedAttributes: ['type']});
+	revisionTracker(Fruit, sequelize, {excludedAttributes: ['type'], modelSuffix: 'History'});
 
 	return new Promise((resolve, reject) => {
 		sequelize.sync({force: true})
