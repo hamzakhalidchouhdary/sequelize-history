@@ -211,7 +211,8 @@ class SequelizeHistory {
 		const historyRecord = this.modelHistory.create({
 			modelId: doc.dataValues.id,
 			diff: JSON.stringify(historyDataValues),
-			createdAt: moment().unix()
+			createdAt: moment().unix(),
+			[this.options.authorFieldName]: dataValues[this.options.authorFieldName]
 		}, {
 			transaction: options.transaction
 		});
@@ -226,7 +227,7 @@ class SequelizeHistory {
 	 * @return {object} - object representing the difference
 	 */
 
-	getDifferenciatedObjectForBulk(object, fields) {
+	getDifferenciatedObjectForBulk(object, fields = []) {
 		let newObj = {};
 
 		fields.forEach(field => {
@@ -251,7 +252,7 @@ class SequelizeHistory {
 			}).then(hits => {
 				if (hits !== null) {
 					const docs = hits.map(hit => {
-						const dataSet = cloneDeep(hit.dataValues);;
+						const dataSet = cloneDeep(hit.dataValues);
 						const dateSetHistory = this.getDifferenciatedObjectForBulk(dataSet, options.fields);
 						// Grab the static revision author property from the tracked class
 						if (typeof this.options.authorFieldName === 'string' &&
@@ -264,7 +265,8 @@ class SequelizeHistory {
 						return {
 							modelId: dataSet.modelId,
 							diff: JSON.stringify(dateSetHistory),
-							createdAt: moment().unix()
+							createdAt: moment().unix(),
+							[this.options.authorFieldName]: dataSet[this.options.authorFieldName]
 						};
 					});
 
